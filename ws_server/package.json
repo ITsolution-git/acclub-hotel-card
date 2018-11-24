@@ -1,0 +1,30 @@
+{
+  "name": "axionwebsocketserver",
+  "version": "0.0.1",
+  "description": "Axion Websocket Server",
+  "main": "serve.js",
+  "scripts": {
+    "start": "node ./serve.js",
+    "test": "npm run lint",
+    "lint": "eslint --config .eslintrc ."
+  },
+  "keywords": [
+    "websocket",
+    "server",
+    "axion"
+  ],
+  "author": "Andrew McRobb @ Axion Communications",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.5.2",
+    "dotenv": "^5.0.1",
+    "pg": "^6.1.0",
+    "redis": "^2.8.0",
+    "request": "^2.85.0",
+    "socket.io": "^2.1.0",
+    "ssl-root-cas": "^1.2.5"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1"
+  }
+}

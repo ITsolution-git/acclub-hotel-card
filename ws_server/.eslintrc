@@ -1,0 +1,21 @@
+{
+	"extends": ["eslint:recommended"],
+	"env": {
+		"browser": false,     // browser global variables.
+		"node": true,         // Node.js global variables and Node.js-specific rules.
+		"amd": true,          // defines require() and define() as global variables as per the amd spec.
+		"es6": true
+	},
+	"parserOptions": {
+		"ecmaVersion": 6,
+		"sourceType": "module",
+		"ecmaFeatures": {
+			"modules": true,
+			"jsx": false
+		}
+	},
+	"rules": {
+		"no-console": [0, { allow: ["warn", "error", "log", "info"] }],
+		"indent": [1, "tab", { "SwitchCase": 1 }]
+	}
+}
