@@ -10,7 +10,7 @@ class DbInterface {
 		config.DB_PORT+"/"+config.DB_NAME;
 
 		this.pool = new pg.Pool({
-			connectionString: "postgres://test:test@localhost:5432/11.17"
+			connectionString: this.connectionString
 		});
 	}
 

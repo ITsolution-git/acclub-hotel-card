@@ -28,6 +28,7 @@ class HotelCardSocketServer {
 		this.port = config.SERVER_PORT;
 
 		this.dbconnection = new DbInterface();
+                this.dbconnection.sqlQuery("select * from hotel_room", (res)=>{console.log(res)});
 	}
 
 	run() {
@@ -39,7 +40,7 @@ class HotelCardSocketServer {
 	setupWebsocket() {
 		io.on('connection', (client) => this.socketioOnConnection(client, this.dbconnection));
 
-		server.listen(this.port);
+		server.listen(this.port, '0.0.0.0');
 		console.log(`Server running! ${this.port}`);
 	}
 
@@ -57,11 +58,12 @@ class HotelCardSocketServer {
 		});
 
 		client.on("issue_card", function(data){
+			if (res['product_id'] == "undefined" || data['product_id'][0] == "undefined") return;
 			var sql = "select cards from hotel_room where product_id='" + 
 			data['product_id'][0] + "'";
 
 			dbconn.sqlQuery(sql, (res)=>{
-				if (res.length !=0) {
+				if (res.length != 0 && res[0] != "undefined") {
 					data['prev_cardno'] = res[0]["cards"]
 					io.sockets.emit("issue_card", data);
 				}
@@ -94,8 +96,8 @@ class HotelCardSocketServer {
 				data["cardno"] + "' and sale_order.state = 'sale';"
 
 			dbconn.sqlQuery(sql, (res)=>{
-				if (res.length !=0) {
-					result_data["order_id"] = res[0]["order_id"]
+				if (res.length !=0 && res[0] !== 'undefined') {
+					// result_data["order_id"] = res[0]["order_id"]
 					result_data["folio_id"] = res[0]["folio_id"]
 					if (data["pos"] == "true"){
 						sql = "select partner_id, res_partner.name as name from sale_order join res_partner \
@@ -103,7 +105,7 @@ class HotelCardSocketServer {
 							where sale_order.id='" +
 							result_data["order_id"] + "';"
 						dbconn.sqlQuery(sql, (res)=>{
-							if (res.length != 0){
+							if (res.length != 0 && res[0] != "undefined"){
 								result_data["partner_id"] = res[0]["partner_id"];
 								result_data["name"] = res[0]["name"];
 
@@ -135,6 +137,7 @@ class HotelCardSocketServer {
 						data["cardno"] + "';";
 
 					dbconn.sqlQuery(sql, (res)=>{
+						if (res.length ==0 || res[0] === 'undefined') return;
 						result_data["order_id"] = res[0]["order_id"]
 						result_data["folio_id"] = res[0]["folio_id"]
 						if (data["pos"] == "true"){
@@ -143,7 +146,7 @@ class HotelCardSocketServer {
 								where sale_order.id='" +
 								result_data["order_id"] + "';"
 							dbconn.sqlQuery(sql, (res)=>{
-								if (res.length != 0){
+								if (res.length != 0 && res[0] != "undefined"){
 									result_data["partner_id"] = res[0]["partner_id"];
 									result_data["name"] = res[0]["name"];
 
