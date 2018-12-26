@@ -58,7 +58,7 @@ class HotelCardSocketServer {
 		});
 
 		client.on("issue_card", function(data){
-			if (res['product_id'] == "undefined" || data['product_id'][0] == "undefined") return;
+			if (data['product_id'] == "undefined" || data['product_id'][0] == "undefined") return;
 			var sql = "select cards from hotel_room where product_id='" + 
 			data['product_id'][0] + "'";
 
@@ -93,11 +93,13 @@ class HotelCardSocketServer {
 				join hotel_folio on folio_room_line.folio_id = hotel_folio.id \
 				join sale_order on hotel_folio.order_id = sale_order.id \
 				where hotel_room.cards = '" +
-				data["cardno"] + "' and sale_order.state = 'sale';"
+				data["cardno"] + "' and (sale_order.state = 'sale' or sale_order.state = 'draft');"
 
 			dbconn.sqlQuery(sql, (res)=>{
+				console.log(res);
+				console.log(sql);
 				if (res.length !=0 && res[0] !== 'undefined') {
-					// result_data["order_id"] = res[0]["order_id"]
+					result_data["order_id"] = res[0]["order_id"]
 					result_data["folio_id"] = res[0]["folio_id"]
 					if (data["pos"] == "true"){
 						sql = "select partner_id, res_partner.name as name from sale_order join res_partner \
