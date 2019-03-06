@@ -87,13 +87,14 @@ class HotelCardSocketServer {
 		client.on("get_url", function(data){
 			var result_data = {};
 			data = JSON.parse(data);
-			var sql = "select order_id, folio_id from hotel_room \
+			var sql = "select order_id, folio_id, sale_order.state as state from hotel_room \
 				join folio_room_line \
 				on hotel_room.id = folio_room_line.room_id \
 				join hotel_folio on folio_room_line.folio_id = hotel_folio.id \
 				join sale_order on hotel_folio.order_id = sale_order.id \
 				where hotel_room.cards = '" +
-				data["cardno"] + "' and (sale_order.state = 'sale' or sale_order.state = 'draft');"
+				data["cardno"] + "' and (state = 'sale' or state = 'draft')"
+ 				+ " order by hotel_folio.id desc;"
 
 			dbconn.sqlQuery(sql, (res)=>{
 				console.log(res);
@@ -102,10 +103,10 @@ class HotelCardSocketServer {
 					result_data["order_id"] = res[0]["order_id"]
 					result_data["folio_id"] = res[0]["folio_id"]
 					if (data["pos"] == "true"){
-						sql = "select partner_id, res_partner.name as name from sale_order join res_partner \
+						sql = "select partner_id, res_partner.name as name , sale_order.state as state from sale_order join res_partner \
 							on sale_order.partner_id = res_partner.id \
 							where sale_order.id='" +
-							result_data["order_id"] + "';"
+							result_data["order_id"]
 						dbconn.sqlQuery(sql, (res)=>{
 							if (res.length != 0 && res[0] != "undefined"){
 								result_data["partner_id"] = res[0]["partner_id"];
@@ -124,7 +125,7 @@ class HotelCardSocketServer {
 						}
 					}
 				} else {
-					sql = "select hotel_folio.order_id, hotel_folio.id as folio_id from hotel_room \
+					sql = "select hotel_folio.order_id, hotel_folio.id as folio_id, sale_order.state as state from hotel_room \
 						join hotel_reservation_line_room_rel \
 						on hotel_room.id = hotel_reservation_line_room_rel.room_id \
 						join hotel_reservation_line \
@@ -135,19 +136,26 @@ class HotelCardSocketServer {
 						on hotel_folio_reservation_rel.order_id = hotel_reservation.id \
 						join hotel_folio \
 						on hotel_folio.id = hotel_folio_reservation_rel.invoice_id \
+						join sale_order on hotel_folio.order_id = sale_order.id \
 						where hotel_room.cards = '" +
-						data["cardno"] + "';";
+						data["cardno"] + "' and (sale_order.state = 'sale' or sale_order.state = 'draft')"
+						+ " order by hotel_folio.id desc;";
 
 					dbconn.sqlQuery(sql, (res)=>{
+						console.log(res);
+						console.log(sql);
 						if (res.length ==0 || res[0] === 'undefined') return;
 						result_data["order_id"] = res[0]["order_id"]
 						result_data["folio_id"] = res[0]["folio_id"]
 						if (data["pos"] == "true"){
-							sql = "select partner_id, res_partner.name as name from sale_order join res_partner \
+							sql = "select partner_id, res_partner.name as name, sale_order.state as state \
+								from sale_order join res_partner \
 								on sale_order.partner_id = res_partner.id \
 								where sale_order.id='" +
-								result_data["order_id"] + "';"
+								result_data["order_id"]+ "'";
+							console.log(sql);
 							dbconn.sqlQuery(sql, (res)=>{
+								console.log(res);
 								if (res.length != 0 && res[0] != "undefined"){
 									result_data["partner_id"] = res[0]["partner_id"];
 									result_data["name"] = res[0]["name"];

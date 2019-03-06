@@ -25,7 +25,7 @@ class DbInterface {
 	}
 
 	static convertResponseToOutput(result) {
-		if (result.rowCount > 0)
+		if (result != undefined && result.rowCount > 0)
 			return result.rows
 		return []
 	}
