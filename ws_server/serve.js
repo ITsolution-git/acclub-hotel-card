@@ -74,6 +74,28 @@ class HotelCardSocketServer {
 			io.sockets.emit("delete_card", data);
 		});
 
+		client.on("delete_card_hr", function(data){
+			data = JSON.parse(data);
+			data['issue'] = "0";
+			io.sockets.emit("delete_card_hr", JSON.stringify(data));
+		});
+		client.on("issue_card_hr", function(data){
+			data = JSON.parse(data);
+			data['issue'] = "1";
+			io.sockets.emit("delete_card_hr", JSON.stringify(data));
+		});
+		client.on("delete_card_hr_confirm", function(data){
+			data = JSON.parse(data);
+			var sql = "update res_partner set cards = '' where id = '" +
+				data['partner'] + "'";
+			if (data['issue'] == "1")
+				sql = "update res_partner set cards = '"+data['cardno']+"' where id = '" +
+					data['partner'] + "'";
+
+			dbconn.sqlQuery(sql, (res)=>{
+			});
+		});
+
 		client.on("write_cardno", function(data){
 			data = JSON.parse(data);
 			var sql = "update hotel_room set cards = '" +
@@ -87,6 +109,25 @@ class HotelCardSocketServer {
 		client.on("get_url", function(data){
 			var result_data = {};
 			data = JSON.parse(data);
+
+			if (data["hotel"] == "true"){
+				var sql = "select id, card_no from res_partner card_no='" + data['cardno'] + "';";
+				dbconn.sqlQuery(sql, (res)=>{
+					if (res.length !=0 && res[0] !== 'undefined') {
+						if(result_data['customer']) {
+							result_data['type'] = 'customer';
+							result_data['customer_id'] = res[0]["id"];
+						}
+						else {
+							result_data['type'] = 'partner';
+							result_data['partner_id'] = res[0]["id"];
+						}
+
+						io.sockets.emit("get_url", result_data);
+					}
+				});
+			}
+
 			var sql = "select order_id, folio_id, sale_order.state as state from hotel_room \
 				join folio_room_line \
 				on hotel_room.id = folio_room_line.room_id \
@@ -116,11 +157,13 @@ class HotelCardSocketServer {
 							}
 							
 							if (data["hotel"] == "true"){
+								result_data['type'] = 'folio';
 								io.sockets.emit("get_url", result_data);
 							}
 						});
 					} else {
 						if (data["hotel"] == "true"){
+							result_data['type'] = 'folio';
 							io.sockets.emit("get_url", result_data);
 						}
 					}
@@ -164,11 +207,13 @@ class HotelCardSocketServer {
 								}
 
 								if (data["hotel"] == "true"){
+									result_data['type'] = 'folio';
 									io.sockets.emit("get_url", result_data);
 								}
 							});
 						} else {
 							if (data["hotel"] == "true"){
+								result_data['type'] = 'folio';
 								io.sockets.emit("get_url", result_data);
 							}
 						}
